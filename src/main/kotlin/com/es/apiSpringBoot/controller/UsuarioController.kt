@@ -6,11 +6,16 @@ import com.es.apiSpringBoot.service.UsuarioService
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
+import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.security.authentication.AuthenticationManager
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken
 import org.springframework.security.core.Authentication
 import org.springframework.security.core.AuthenticationException
+import org.springframework.web.bind.annotation.DeleteMapping
+import org.springframework.web.bind.annotation.GetMapping
+import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
+import org.springframework.web.bind.annotation.PutMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
@@ -28,25 +33,41 @@ class UsuarioController {
     @Autowired
     private lateinit var tokenServiceAPI: TokenServiceAPI
 
-    /*
-    MÉTODO PARA INSERTAR UN USUARIO
-     */
+
     @PostMapping("/register")
     fun register(
         @RequestBody newUsuario: Usuario
-    ) : ResponseEntity<Usuario?>? {
-
-        // Comprobación mínima
-        // -> La obviamos por ahora
-
-        // Llamar al UsuarioService para insertar un usuario
-
-
-        // Devolver el usuario insertado
-        return ResponseEntity(null, HttpStatus.CREATED) // Cambiar null por el usuario insertado
-
+    ): ResponseEntity<Usuario> {
+        val registeredUser = usuarioService.registerUsuario(newUsuario)
+        return ResponseEntity(registeredUser, HttpStatus.CREATED)
     }
 
+    @GetMapping
+    fun getAllUsers(): ResponseEntity<List<Usuario>> {
+        val users = usuarioService.findAllUsers()
+        return ResponseEntity.ok(users)
+    }
+
+    @GetMapping("/{id}")
+    fun getUserById(@PathVariable id: Long): ResponseEntity<Usuario> {
+        val user = usuarioService.findUserById(id)
+        return ResponseEntity.ok(user)
+    }
+
+    @PutMapping("/{id}")
+    fun updateUser(
+        @PathVariable id: Long,
+        @RequestBody updatedUser: Usuario
+    ): ResponseEntity<Usuario> {
+        val user = usuarioService.updateUser(id, updatedUser)
+        return ResponseEntity.ok(user)
+    }
+
+    @DeleteMapping("/{id}")
+    fun deleteUser(@PathVariable id: Long): ResponseEntity<Void> {
+        usuarioService.deleteUser(id)
+        return ResponseEntity.noContent().build()
+    }
 
     /*
     MÉTODO (ENDPOINT) PARA HACER UN LOGIN
@@ -58,7 +79,7 @@ class UsuarioController {
         try {
             authentication = authenticationManager.authenticate(UsernamePasswordAuthenticationToken(usuario.username, usuario.password))
         } catch (e: AuthenticationException) {
-            return ResponseEntity(mapOf("mensaje" to "Credenciales incorrectas dude"), HttpStatus.UNAUTHORIZED)
+            return ResponseEntity(mapOf("mensaje" to "Credenciales incorrectas"), HttpStatus.UNAUTHORIZED)
         }
 
 

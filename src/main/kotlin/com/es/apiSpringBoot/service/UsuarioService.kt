@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.security.core.userdetails.User
 import org.springframework.security.core.userdetails.UserDetails
 import org.springframework.security.core.userdetails.UserDetailsService
+import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.stereotype.Service
 
 
@@ -15,6 +16,8 @@ class UsuarioService : UserDetailsService {
     @Autowired
     private lateinit var usuarioRepository: UsuarioRepository
 
+    @Autowired
+    private lateinit var passwordEncoder: PasswordEncoder
 
     /*
     TODO
@@ -27,7 +30,7 @@ class UsuarioService : UserDetailsService {
         return User.builder()
             .username(usuario.username)
             .password(usuario.password)
-            .roles(usuario.roles)
+            .roles(usuario.rol)
             .build()
     }
 
@@ -35,30 +38,31 @@ class UsuarioService : UserDetailsService {
     /*
     MÉTODO PARA INSERTAR UN USUARIO
      */
-    fun registerUsuario(user: User) : User? {
+    fun registerUsuario(user: Usuario): Usuario {
+        if (usuarioRepository.findByUsername(user.username).isPresent) {
+            throw RuntimeException("El nombre de usuario ya está en uso")
+        }
 
-        // Comprobamos que el usuario no existe en la base de datos
+        user.password = passwordEncoder.encode(user.password)
 
-
-        // Creamos la instancia de Usuario
-
-
-        /*
-         La password del newUsuario debe estar hasheada, así que usamos el passwordEncoder que tenemos definido.
-         ¿De dónde viene ese passwordEncoder?
-         El objeto passwordEncoder lo tenemos que inyectar, y viene desde la clase SecurityConfig
-         */
-
-
-        // Guardamos el newUsuario en la base de datos... igual que siempre
-
-
-
-        // Devolvemos el Usuario insertado en la BDD
-        return null // Cambiar null por el usuario
-
+        return usuarioRepository.save(user)
     }
 
+    fun findAllUsers(): List<Usuario> {
+        return usuarioRepository.findAll()
+    }
 
+    fun findUserById(id: Long): Usuario {
+        return usuarioRepository.findById(id)
+            .orElseThrow { RuntimeException("User not found") }
+    }
 
+    fun updateUser(id: Long, nuevoUsuario: Usuario): Usuario {
+        return usuarioRepository.save(nuevoUsuario)
+    }
+
+    fun deleteUser(id: Long) {
+        val user = findUserById(id)
+        usuarioRepository.delete(user)
+    }
 }
