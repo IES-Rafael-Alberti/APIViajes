@@ -19,6 +19,7 @@ import org.springframework.web.bind.annotation.PutMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
+import java.util.Optional
 
 @RestController
 @RequestMapping("/usuarios")
@@ -50,7 +51,7 @@ class UsuarioController {
 
     @GetMapping("/{id}")
     @PreAuthorize("isAuthenticated() && (#id == authentication.principal.id || hasRole('ADMIN'))")
-    fun getUserById(@PathVariable id: Long): ResponseEntity<Usuario> {
+    fun getUserById(@PathVariable id: Long): ResponseEntity<Optional<Usuario?>?> {
         val user = usuarioService.findUserById(id)
         return ResponseEntity.ok(user)
     }

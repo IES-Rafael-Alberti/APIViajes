@@ -7,8 +7,8 @@ import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.security.core.context.SecurityContextHolder
-import org.springframework.security.core.userdetails.UserDetails
 import org.springframework.web.bind.annotation.*
+import java.util.Optional
 
 @RestController
 @RequestMapping("/viajes")
@@ -31,7 +31,7 @@ class ViajeController {
 
     @GetMapping("/{id}")
     @PreAuthorize("isAuthenticated() && (hasRole('ADMIN') || @viajeService.isUserParticipant(#id, authentication.principal.id))")
-    fun getViajeById(@PathVariable id: Long): ResponseEntity<Viaje> {
+    fun getViajeById(@PathVariable id: Long): ResponseEntity<Optional<Viaje>?> {
         val viaje = viajeService.findViajeById(id)
         return ResponseEntity.ok(viaje)
     }

@@ -30,6 +30,7 @@ data class Viaje(
     )
     var participants: Set<Usuario?>?
 ) {
+    // Constructor sin argumentos para JPA, no se usa es solo para que no de fallos
     constructor() : this(
         0,
         Destino(),

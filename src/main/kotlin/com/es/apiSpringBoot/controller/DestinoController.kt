@@ -7,6 +7,7 @@ import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.web.bind.annotation.*
+import java.util.Optional
 
 @RestController
 @RequestMapping("/destinos")
@@ -28,7 +29,7 @@ class DestinoController {
     }
 
     @GetMapping("/{id}")
-    fun getDestinoById(@PathVariable id: Long): ResponseEntity<Destino> {
+    fun getDestinoById(@PathVariable id: Long): ResponseEntity<Optional<Destino>?> {
         val destino = destinoService.findDestinoById(id)
         return ResponseEntity.ok(destino)
     }

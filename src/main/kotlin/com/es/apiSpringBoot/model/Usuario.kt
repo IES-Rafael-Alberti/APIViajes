@@ -2,7 +2,6 @@ package com.es.apiSpringBoot.model
 
 import com.es.apiSpringBoot.model.enumclasses.UsuarioRol
 import jakarta.persistence.*
-import org.jetbrains.annotations.NotNull
 
 
 @Entity
@@ -11,10 +10,10 @@ data class Usuario(
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     var id: Long?,
 
-    @Column(unique = true, nullable = false)
+    @Column(unique = true, nullable = false, length = 50)
     var username: String?,
 
-    @Column(nullable = false)
+    @Column(nullable = false, length = 50)
     var password: String?,
 
     @Enumerated(EnumType.STRING)

@@ -8,10 +8,10 @@ data class Destino(
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     var id: Long?,
 
-    @Column(unique = true, nullable = false)
+    @Column(unique = true, nullable = false,length = 50)
     var name: String?,
 
-    @Column(nullable = false)
+    @Column(nullable = false, length = 50)
     var country: String?
 ) {
     constructor() : this(
