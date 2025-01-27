@@ -1,6 +1,7 @@
 package com.es.apiSpringBoot.service
 
 import com.es.apiSpringBoot.model.Usuario
+import com.es.apiSpringBoot.model.enumclasses.UsuarioRol
 import com.es.apiSpringBoot.repository.UsuarioRepository
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.security.core.userdetails.User
@@ -19,9 +20,6 @@ class UsuarioService : UserDetailsService {
     @Autowired
     private lateinit var passwordEncoder: PasswordEncoder
 
-    /*
-    TODO
-     */
     override fun loadUserByUsername(username: String?): UserDetails {
         var usuario = usuarioRepository
             .findByUsername(username!!)
@@ -30,19 +28,15 @@ class UsuarioService : UserDetailsService {
         return User.builder()
             .username(usuario.username)
             .password(usuario.password)
-            .roles(usuario.rol)
+            .roles(usuario.rol.toString())
             .build()
     }
 
 
-    /*
-    MÉTODO PARA INSERTAR UN USUARIO
-     */
     fun registerUsuario(user: Usuario): Usuario {
-        if (usuarioRepository.findByUsername(user.username).isPresent) {
-            throw RuntimeException("El nombre de usuario ya está en uso")
-        }
 
+        //Es imposible registrar a un usuario con ADMIN se tiene que hacer manualmente
+        user.rol = UsuarioRol.ROLE_USER
         user.password = passwordEncoder.encode(user.password)
 
         return usuarioRepository.save(user)
@@ -58,6 +52,10 @@ class UsuarioService : UserDetailsService {
     }
 
     fun updateUser(id: Long, nuevoUsuario: Usuario): Usuario {
+        val oldUser = findUserById(id)
+
+        //Mantiene siempre el rol que tenía para evitar fallas de seuguridad
+        nuevoUsuario.rol = oldUser.rol
         return usuarioRepository.save(nuevoUsuario)
     }
 

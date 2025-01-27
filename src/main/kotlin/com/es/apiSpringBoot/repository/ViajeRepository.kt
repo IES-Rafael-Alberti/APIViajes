@@ -8,6 +8,4 @@ import java.util.Optional
 
 @Repository
 interface ViajeRepository: JpaRepository<Viaje, Long> {
-
-    fun findByParticipants(participant : Usuario): Optional<Viaje>
 }

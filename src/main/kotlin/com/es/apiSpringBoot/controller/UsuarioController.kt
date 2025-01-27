@@ -49,12 +49,14 @@ class UsuarioController {
     }
 
     @GetMapping("/{id}")
+    @PreAuthorize("isAuthenticated() && (#id == authentication.principal.id || hasRole('ADMIN'))")
     fun getUserById(@PathVariable id: Long): ResponseEntity<Usuario> {
         val user = usuarioService.findUserById(id)
         return ResponseEntity.ok(user)
     }
 
     @PutMapping("/{id}")
+    @PreAuthorize("isAuthenticated() && (#id == authentication.principal.id || hasRole('ADMIN'))")
     fun updateUser(
         @PathVariable id: Long,
         @RequestBody updatedUser: Usuario
@@ -64,6 +66,7 @@ class UsuarioController {
     }
 
     @DeleteMapping("/{id}")
+    @PreAuthorize("isAuthenticated() && (#id == authentication.principal.id || hasRole('ADMIN'))")
     fun deleteUser(@PathVariable id: Long): ResponseEntity<Void> {
         usuarioService.deleteUser(id)
         return ResponseEntity.noContent().build()

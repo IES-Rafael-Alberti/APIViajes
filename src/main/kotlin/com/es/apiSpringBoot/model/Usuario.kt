@@ -1,6 +1,9 @@
 package com.es.apiSpringBoot.model
 
+import com.es.apiSpringBoot.model.enumclasses.UsuarioRol
 import jakarta.persistence.*
+import org.jetbrains.annotations.NotNull
+
 
 @Entity
 @Table(name = "usuarios")
@@ -9,18 +12,19 @@ data class Usuario(
     var id: Long?,
 
     @Column(unique = true, nullable = false)
-    var username: String,
+    var username: String?,
 
     @Column(nullable = false)
-    var password: String,
+    var password: String?,
 
-    var rol: String? = "ROLE_USER" // "ROLE_USER,ROLE_ADMIN" , ROLE_USER por defecto
+    @Enumerated(EnumType.STRING)
+    var rol: UsuarioRol?
 ) {
     // Constructor sin argumentos para JPA, no se usa es solo para que no de fallos
     constructor() : this(
-        null,
+        0,
         "",
         "",
-        "ROLE_USER"
+        UsuarioRol.ROLE_USER
     )
 }

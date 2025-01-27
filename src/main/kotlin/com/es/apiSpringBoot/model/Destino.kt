@@ -6,16 +6,16 @@ import jakarta.persistence.*
 @Table(name = "destinos")
 data class Destino(
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
-    var id: Long? = null,
+    var id: Long?,
 
     @Column(unique = true, nullable = false)
-    var name: String,
+    var name: String?,
 
     @Column(nullable = false)
-    var country: String
+    var country: String?
 ) {
     constructor() : this(
-        null,
+        0,
         "",
         ""
     )

@@ -1,23 +1,26 @@
 package com.es.apiSpringBoot.model
 
+import com.es.apiSpringBoot.model.enumclasses.MethodOfTravel
 import jakarta.persistence.*
 import java.util.Date
+
+
 
 @Entity
 @Table(name = "viajes")
 data class Viaje(
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
-    var id: Long? = null,
+    var id: Long?,
 
     @ManyToOne
     @JoinColumn(name = "destination_id", nullable = false)
-    var destination: Destino,
+    var destination: Destino?,
 
     @Column(nullable = false)
-    var date: Date,
+    var date: Date?,
 
-    @Column(nullable = false)
-    var methodOfTravel: String, //"CAR,BUS,TRAIN,PLANE,BOAT"
+    @Enumerated(EnumType.STRING)
+    var methodOfTravel: MethodOfTravel?,
 
     @ManyToMany(targetEntity = Usuario::class)
     @JoinTable(
@@ -25,13 +28,13 @@ data class Viaje(
         joinColumns = [JoinColumn(name = "viaje_id")],
         inverseJoinColumns = [JoinColumn(name = "usuario_id")]
     )
-    var participants: Set<Usuario>
+    var participants: Set<Usuario?>?
 ) {
     constructor() : this(
-        null,
+        0,
         Destino(),
         Date(),
-        "",
+        MethodOfTravel.CAR,
         setOf()
     )
 }

@@ -32,25 +32,26 @@ class SecurityConfig {
     private lateinit var rsaKeys: RSAKeysProperties
 
     @Bean
-    fun securityFilterChain(http: HttpSecurity) : SecurityFilterChain {
-
+    fun securityFilterChain(http: HttpSecurity): SecurityFilterChain {
         return http
-            .csrf { csrf -> csrf.disable() } // Cross-Site Forgery
+            .csrf { csrf -> csrf.disable() }
             .authorizeHttpRequests { auth -> auth
-                .requestMatchers("/usuarios/login").permitAll()
-                .requestMatchers("/rutas_protegidas/recurso2").permitAll()
-                .requestMatchers("/rutas_protegidas/usuario_autenticado").authenticated()
-                .requestMatchers(HttpMethod.GET,"/rutas_protegidas/recurso/{id}").permitAll()
-                .requestMatchers("/rutas_protegidas/recurso1").authenticated()
-                .requestMatchers(HttpMethod.DELETE,"/rutas_protegidas/recurso/{id}").hasRole("ADMIN")
-                .requestMatchers("/rutas_publicas/**").permitAll()
+                .requestMatchers("/usuarios/login", "/usuarios/register").permitAll()
+                .requestMatchers("/destinos").permitAll()
+                .requestMatchers("/destinos/{id}").permitAll()
+                .requestMatchers("/usuarios").hasRole("ADMIN")
+                .requestMatchers("/usuarios/{id}").authenticated()
+                .requestMatchers("/viajes").authenticated()
+                .requestMatchers("/viajes/{id}").authenticated()
+                .requestMatchers(HttpMethod.DELETE, "/usuarios/{id}").hasRole("ADMIN")
+                .requestMatchers(HttpMethod.DELETE, "/destinos/{id}").hasRole("ADMIN")
+                .requestMatchers(HttpMethod.DELETE, "/viajes/{id}").hasRole("ADMIN")
                 .anyRequest().authenticated()
-            } // Los recursos protegidos y publicos
+            }
             .oauth2ResourceServer { oauth2 -> oauth2.jwt(Customizer.withDefaults()) }
             .sessionManagement { session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS) }
             .httpBasic(Customizer.withDefaults())
             .build()
-
     }
 
     @Bean
