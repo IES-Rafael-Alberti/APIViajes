@@ -59,14 +59,14 @@ class ViajeController {
         return ResponseEntity.noContent().build()
     }
 
-    @PostMapping("/{id}/join")
+    @PutMapping("/{id}/join")
     @PreAuthorize("isAuthenticated()")
     fun joinViaje(@PathVariable id: Long): ResponseEntity<Viaje> {
         val viaje = viajeService.addParticipant(id, SecurityContextHolder.getContext().authentication.name)
         return ResponseEntity.ok(viaje)
     }
 
-    @PostMapping("/{id}/leave")
+    @PutMapping("/{id}/leave")
     @PreAuthorize("isAuthenticated()")
     fun leaveViaje(@PathVariable id: Long): ResponseEntity<Viaje> {
         val viaje = viajeService.removeParticipant(id, SecurityContextHolder.getContext().authentication.name)

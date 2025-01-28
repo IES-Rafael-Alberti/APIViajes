@@ -36,17 +36,38 @@ class SecurityConfig {
         return http
             .csrf { csrf -> csrf.disable() }
             .authorizeHttpRequests { auth -> auth
-                .requestMatchers("/usuarios/login", "/usuarios/register").permitAll()
-                .requestMatchers("/destinos").permitAll()
-                .requestMatchers("/destinos/{id}").permitAll()
-                .requestMatchers("/usuarios").hasRole("ADMIN")
-                .requestMatchers("/usuarios/{id}").authenticated()
-                .requestMatchers("/viajes").authenticated()
-                .requestMatchers("/viajes/{id}").authenticated()
-                .requestMatchers(HttpMethod.DELETE, "/usuarios/{id}").hasRole("ADMIN")
-                .requestMatchers(HttpMethod.DELETE, "/destinos/{id}").hasRole("ADMIN")
-                .requestMatchers(HttpMethod.DELETE, "/viajes/{id}").hasRole("ADMIN")
-                .anyRequest().authenticated()
+                // Endpoints publicos
+                .requestMatchers(HttpMethod.POST,"/usuarios/login", "/usuarios/register").permitAll()
+                .requestMatchers(HttpMethod.GET, "/destinos", "/destinos/{id}").permitAll()
+
+                //Endpoints autorizados
+                .requestMatchers(HttpMethod.POST, "/viajes").authenticated()
+                .requestMatchers(HttpMethod.PUT,"/viajes/{id}/join").authenticated()
+                .requestMatchers(HttpMethod.PUT,"/viajes/{id}/leave").authenticated()
+
+
+                // Endpoints administrador
+                .requestMatchers(HttpMethod.GET,"/usuarios").hasRole("ROLE_ADMIN")
+                .requestMatchers(HttpMethod.GET,"/viajes").hasRole("ROLE_ADMIN")
+                .requestMatchers(HttpMethod.POST, "/destinos").hasRole("ROLE_ADMIN")
+                .requestMatchers(HttpMethod.PUT, "/destinos").hasRole("ROLE_ADMIN")
+                .requestMatchers(HttpMethod.DELETE, "/destinos/{id}").hasRole("ROLE_ADMIN")
+
+
+                // Endpoints de usuario, la logica de estos endpoints esta especificiada con PreAuthorize en los controllers
+                //Pueden acceder administradores o los usuarios en si
+                .requestMatchers(HttpMethod.GET,"/usuarios/{id}").authenticated()
+                .requestMatchers(HttpMethod.PUT,"/usuarios/{id}").authenticated()
+                .requestMatchers(HttpMethod.DELETE, "/usuarios/{id}").authenticated()
+
+                //Pueden acceder los administradores o los participantes del viaje
+                .requestMatchers(HttpMethod.GET,"/viajes/{id}").authenticated()
+                .requestMatchers(HttpMethod.PUT,"/viajes/{id}").authenticated()
+                .requestMatchers(HttpMethod.DELETE, "/viajes/{id}").authenticated()
+
+                //Default, admin porque nada tendria que acabar aqui, pero si lo hace no quiero que acceda
+                //nadie excepto los desarrolladores para solucionarlo
+                .anyRequest().hasRole("ADMIN")
             }
             .oauth2ResourceServer { oauth2 -> oauth2.jwt(Customizer.withDefaults()) }
             .sessionManagement { session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS) }

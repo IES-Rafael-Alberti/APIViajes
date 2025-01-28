@@ -93,27 +93,24 @@ class UsuarioService : UserDetailsService {
         // Comprueba que no haya datos vacios
         if (usuario.username.isNullOrBlank()) {
             errors.add("El nombre del usuario no puede estar vacío")
+        }else{
+            //En este caso no recortamos la contrasena porque los espacios son parte de ella
+            usuario.username = usuario.username!!.trim()
+            // Comprueba la longitud de los datos y que no sobrepasen el limite
+            if (usuario.username!!.length > 50) {
+                errors.add("La longitud maxima del nombre es 50 caracteres")
+            }
         }
+
         if (usuario.password.isNullOrBlank()) {
             errors.add("La contrasena no puede estar vacia")
-        }
 
-
-        //En este caso no recortamos la contrasena porque los espacios son parte de ella
-        usuario.username = usuario.username!!.trim()
-
-        // Comprueba la longitud de los datos y que no sobrepasen el limite
-        if (usuario.username!!.length > 50) {
-            throw IllegalArgumentException("La longitud maxima del nombre es 50 caracteres")
-        }
-
-        if (usuario.password!!.length > 50) {
+        }else if (usuario.password!!.length > 50) {
             errors.add("La longitud máxima del nombre es 50 caracteres")
-        }
 
-        // Comprueba que la contraseña sigue estandares mínimos
-        if (!usuario.password!!.matches(Regex("^(?=.*[A-Za-z])(?=.*\\\\d).{8,}\$"))) {
-            errors.add("La longitud máxima del nombre es 50 caracteres")
+        //Comprueba que la contrasena sigue los estandares de minimos de seguirdad
+        }else if (!usuario.password!!.matches(Regex("^(?=.*[A-Za-z])(?=.*\\\\d).{8,}\$"))) {
+                errors.add("La contrasena debe tiene que al menos 8 caracteres y conetener una letra y un numero")
         }
 
         if (errors.isNotEmpty()) {

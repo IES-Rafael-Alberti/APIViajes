@@ -176,12 +176,7 @@ class ViajeService {
                 errors.add("Método de viaje no válido. Métodos válidos: ${MethodOfTravel.entries.joinToString()}")
             }
         }
-        // Comprueba que todos los participantes tengan ID válido
-        viaje.participants!!.forEach { participant ->
-            if (participant?.id == null) {
-                errors.add("No existe un participante con id ${participant?.id}")
-            }
-        }
+
         if (errors.isNotEmpty()) {
             throw BadRequestException(errors.joinToString(". "))
         }

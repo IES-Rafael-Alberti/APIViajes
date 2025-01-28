@@ -62,19 +62,20 @@ class DestinoService {
 
         if (destino.name.isNullOrBlank()) {
             errors.add("El nombre del destino no puede estar vacío")
+        }else{
+            destino.name = destino.name?.trim()
+            if ((destino.name?.length ?: 0) > 50) {
+                errors.add("La longitud máxima del nombre es 50 caracteres")
+            }
         }
         if (destino.country.isNullOrBlank()) {
             errors.add("El nombre del país no puede estar vacío")
-        }
 
-        destino.name = destino.name?.trim()
-        destino.country = destino.country?.trim()
-
-        if ((destino.name?.length ?: 0) > 50) {
-            errors.add("La longitud máxima del nombre es 50 caracteres")
-        }
-        if ((destino.country?.length ?: 0) > 50) {
-            errors.add("La longitud máxima del nombre del país es 50 caracteres")
+        }else{
+            destino.country = destino.country?.trim()
+            if ((destino.country?.length ?: 0) > 50) {
+                errors.add("La longitud máxima del nombre del país es 50 caracteres")
+            }
         }
 
         if (errors.isNotEmpty()) {

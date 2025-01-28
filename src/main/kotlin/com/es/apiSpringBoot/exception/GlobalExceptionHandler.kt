@@ -10,6 +10,8 @@ import org.springframework.web.bind.annotation.ExceptionHandler
 @ControllerAdvice
 class GlobalExceptionHandler {
 
+    //Molde para las excepciones que estan planeadas que succedan a lo largo de la
+    //ejecución del programa
     @ExceptionHandler(ApiException::class)
     fun handleApiException(
         ex: ApiException,
@@ -24,6 +26,8 @@ class GlobalExceptionHandler {
         return ResponseEntity(errorResponse, ex.status)
     }
 
+    //En caso de que salte algo por fallo interno del programa
+    //(no va
     @ExceptionHandler(Exception::class)
     fun handleGenericException(
         ex: Exception,
