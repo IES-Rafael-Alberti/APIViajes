@@ -5,9 +5,7 @@ import com.es.apiSpringBoot.service.DestinoService
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
-import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.web.bind.annotation.*
-import java.util.Optional
 
 @RestController
 @RequestMapping("/destinos")
@@ -29,7 +27,7 @@ class DestinoController {
     }
 
     @GetMapping("/{id}")
-    fun getDestinoById(@PathVariable id: Long): ResponseEntity<Optional<Destino>?> {
+    fun getDestinoById(@PathVariable id: Long): ResponseEntity<Destino> {
         val destino = destinoService.findDestinoById(id)
         return ResponseEntity.ok(destino)
     }

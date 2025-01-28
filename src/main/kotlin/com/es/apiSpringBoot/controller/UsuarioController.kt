@@ -1,5 +1,6 @@
 package com.es.apiSpringBoot.controller
 
+import com.es.apiSpringBoot.model.Destino
 import com.es.apiSpringBoot.model.Usuario
 import com.es.apiSpringBoot.service.TokenServiceAPI
 import com.es.apiSpringBoot.service.UsuarioService
@@ -39,21 +40,21 @@ class UsuarioController {
     fun register(
         @RequestBody newUsuario: Usuario
     ): ResponseEntity<Usuario> {
-        val registeredUser = usuarioService.registerUsuario(newUsuario)
-        return ResponseEntity(registeredUser, HttpStatus.CREATED)
+        val registeredUsuario = usuarioService.registerUsuario(newUsuario)
+        return ResponseEntity(registeredUsuario, HttpStatus.CREATED)
     }
 
     @GetMapping
     fun getAllUsers(): ResponseEntity<List<Usuario>> {
-        val users = usuarioService.findAllUsers()
-        return ResponseEntity.ok(users)
+        val usuarios = usuarioService.findAllUsers()
+        return ResponseEntity.ok(usuarios)
     }
 
     @GetMapping("/{id}")
     @PreAuthorize("isAuthenticated() && (#id == authentication.principal.id || hasRole('ADMIN'))")
-    fun getUserById(@PathVariable id: Long): ResponseEntity<Optional<Usuario?>?> {
-        val user = usuarioService.findUserById(id)
-        return ResponseEntity.ok(user)
+    fun getUserById(@PathVariable id: Long): ResponseEntity<Usuario> {
+        val usuario = usuarioService.findUserById(id)
+        return ResponseEntity.ok(usuario)
     }
 
     @PutMapping("/{id}")
@@ -62,8 +63,8 @@ class UsuarioController {
         @PathVariable id: Long,
         @RequestBody updatedUser: Usuario
     ): ResponseEntity<Usuario> {
-        val user = usuarioService.updateUser(id, updatedUser)
-        return ResponseEntity.ok(user)
+        val usuario = usuarioService.updateUser(id, updatedUser)
+        return ResponseEntity.ok(usuario)
     }
 
     @DeleteMapping("/{id}")

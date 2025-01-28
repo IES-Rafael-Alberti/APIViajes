@@ -1,5 +1,8 @@
 package com.es.apiSpringBoot.service
 
+import com.es.apiSpringBoot.exception.BadRequestException
+import com.es.apiSpringBoot.exception.ConflictException
+import com.es.apiSpringBoot.exception.NotFoundException
 import com.es.apiSpringBoot.model.Viaje
 import com.es.apiSpringBoot.model.enumclasses.MethodOfTravel
 import com.es.apiSpringBoot.repository.DestinoRepository
@@ -29,14 +32,14 @@ class ViajeService {
         validateViaje(viaje)
 
         // Comprueba que el destino exista
-        destinoRepository.findById(viaje.destination!!.id!!).orElseThrow {
-            RuntimeException("El destino no existe")
+        destinoRepository.findById(viaje.destination!!.id!!)
+            .orElseThrow { NotFoundException("El destino no existe")
         }
 
         // Comprueba que los participantes existan
         val validParticipants = viaje.participants?.map { participant ->
             usuarioRepository.findById(participant?.id!!)
-                .orElseThrow { RuntimeException("Usuario con ID ${participant.id} no existe") }
+                .orElseThrow { NotFoundException("Usuario con ID ${participant.id} no existe") }
         }?.toSet()
 
             viaje.participants = validParticipants
@@ -48,8 +51,11 @@ class ViajeService {
             return viajeRepository.findAll()
     }
 
-    fun findViajeById(id: Long): Optional<Viaje>{
+    fun findViajeById(id: Long): Viaje{
         return viajeRepository.findById(id)
+            .orElseThrow{
+                NotFoundException("No se encontro el viaje con id ${id}")
+            }
     }
 
 
@@ -57,13 +63,13 @@ class ViajeService {
         validateViaje(updatedViaje)
 
         val existingViaje = viajeRepository.findById(id)
-            .orElseThrow { RuntimeException("El viaje que se esta intentando actualizar no existe") }
+            .orElseThrow { NotFoundException("El viaje que se esta intentando actualizar no existe") }
 
-        destinoRepository.findById(updatedViaje.destination?.id!!).orElseThrow {
-            RuntimeException("El destino no existe")
+        destinoRepository.findById(updatedViaje.destination?.id!!)
+            .orElseThrow { NotFoundException("El destino no existe")
         }
 
-        //Los participantes se tiene que cambiar por separado para evitar fallas de seguridad
+        //Los participantes se tienen que cambiar por separado para evitar fallas de seguridad
         updatedViaje.participants = existingViaje.participants
 
         return viajeRepository.save(updatedViaje)
@@ -71,13 +77,13 @@ class ViajeService {
 
     fun deleteViaje(id: Long) {
         val viaje = viajeRepository.findById(id)
-            .orElseThrow { RuntimeException("El viaje que se está intentando borrar no existe") }
+            .orElseThrow { NotFoundException("El viaje que se está intentando borrar no existe") }
         viajeRepository.delete(viaje)
     }
 
     fun findViajesByParticipant(usuarioId: Long): List<Viaje> {
         val usuario = usuarioRepository.findById(usuarioId)
-            .orElseThrow { RuntimeException("Este usuario no existe") }
+            .orElseThrow { NotFoundException("Este usuario no existe") }
 
         return viajeRepository.findAll()
                 .filter { it.participants!!.contains(usuario) }
@@ -87,12 +93,12 @@ class ViajeService {
 
     fun addParticipant(viajeId: Long, username: String): Viaje {
         val viaje = viajeRepository.findById(viajeId)
-            .orElseThrow { RuntimeException("No se encuentra el viaje") }
+            .orElseThrow { NotFoundException("No se encuentra el viaje") }
         val usuario = usuarioRepository.findByUsername(username)
-            .orElseThrow { RuntimeException("No se encuentra el usuario") }
+            .orElseThrow { NotFoundException("No se encuentra el usuario") }
 
         if (viaje.participants!!.any { it?.id == usuario.id }) {
-            throw RuntimeException("User is already a participant")
+            throw ConflictException("User is already a participant")
         }
 
         val updatedParticipants = viaje.participants!!.toMutableSet()
@@ -104,12 +110,12 @@ class ViajeService {
 
     fun removeParticipant(viajeId: Long, username: String): Viaje {
         val viaje = viajeRepository.findById(viajeId)
-        .orElseThrow { RuntimeException("Este viaje no existe") }
+        .orElseThrow { NotFoundException("Este viaje no existe") }
         val usuario = usuarioRepository.findByUsername(username)
-            .orElseThrow { RuntimeException("Usuario no existe") }
+            .orElseThrow { NotFoundException("Usuario no existe") }
 
         if (!viaje.participants!!.any { it?.id == usuario.id }) {
-            throw RuntimeException("User is not a participant")
+            throw ConflictException("User is not a participant")
         }
 
         val updatedParticipants = viaje.participants!!.toMutableSet()
@@ -123,60 +129,61 @@ class ViajeService {
     //Funcion que se utiliza para saber si un usuario pertence a
     fun isUserParticipant(viajeId: Long, usuarioId: Long): Boolean {
         val viaje = viajeRepository.findById(viajeId)
-            .orElseThrow { RuntimeException("El viaje no existe") }
+            .orElseThrow { NotFoundException("El viaje no existe") }
         return viaje.participants!!.any { it?.id == usuarioId }
     }
 
     private fun validateViaje(viaje: Viaje) {
+        val errors = mutableListOf<String>()
+
         // Comprueba que no haya datos nulos
         if (viaje.destination == null) {
-            throw IllegalArgumentException("El destino no puede estar vacío")
+            errors.add("El destino no puede estar vacío")
         }
         if (viaje.destination!!.id == null) {
-            throw IllegalArgumentException("El ID del destino no puede estar vacío")
+            errors.add("El ID del destino no puede estar vacío")
         }
         if (viaje.date == null) {
-            throw IllegalArgumentException("La fecha no puede estar vacía")
+            errors.add("La fecha no puede estar vacía")
+        }else{
+            // Comprueba que la fecha sea válida y futura
+            try {
+                val dateFormat = SimpleDateFormat("yyyy-MM-dd")
+                dateFormat.isLenient = false
+
+                val dateStr = dateFormat.format(viaje.date)
+                val parsedDate = dateFormat.parse(dateStr)
+
+                if (parsedDate.before(Date())) {
+                    errors.add("La fecha del viaje debe ser futura")
+                }
+
+                viaje.date = parsedDate
+            } catch (e: ParseException) {
+                errors.add("El formato de la fecha debe ser: yyyy-MM-dd")
+            }
         }
         if (viaje.methodOfTravel == null) {
-            throw IllegalArgumentException("El método de viaje no puede estar vacío")
-        }
-        if (viaje.participants == null) {
-            throw IllegalArgumentException("La lista de participantes no puede estar vacía")
-        }
-
-        // Comprueba que la fecha sea válida y futura
-        try {
-            val dateFormat = SimpleDateFormat("yyyy-MM-dd")
-            dateFormat.isLenient = false
-
-            val dateStr = dateFormat.format(viaje.date)
-            val parsedDate = dateFormat.parse(dateStr)
-
-            if (parsedDate.before(Date())) {
-                throw IllegalArgumentException("La fecha del viaje debe ser futura")
+           errors.add("El método de viaje no puede estar vacío")
+        }else{
+            // Comprueba que el método de viaje sea válido
+            try {
+                val validMethod = MethodOfTravel.valueOf(viaje.methodOfTravel.toString())
+                if (validMethod !in MethodOfTravel.entries.toTypedArray()) {
+                    errors.add("Método de viaje no válido. Métodos válidos: ${MethodOfTravel.entries.joinToString()}")
+                }
+            } catch (e: IllegalArgumentException) {
+                errors.add("Método de viaje no válido. Métodos válidos: ${MethodOfTravel.entries.joinToString()}")
             }
-
-            viaje.date = parsedDate
-        } catch (e: ParseException) {
-            throw IllegalArgumentException("El formato de la fecha debe ser: yyyy-MM-dd")
         }
-
-        // Comprueba que el método de viaje sea válido
-        try {
-            val validMethod = MethodOfTravel.valueOf(viaje.methodOfTravel.toString())
-            if (validMethod !in MethodOfTravel.entries.toTypedArray()) {
-                throw IllegalArgumentException("Método de viaje no válido. Métodos válidos: ${MethodOfTravel.entries.joinToString()}")
-            }
-        } catch (e: IllegalArgumentException) {
-            throw IllegalArgumentException("Método de viaje no válido. Métodos válidos: ${MethodOfTravel.entries.joinToString()}")
-        }
-
         // Comprueba que todos los participantes tengan ID válido
         viaje.participants!!.forEach { participant ->
             if (participant?.id == null) {
-                throw IllegalArgumentException("Todos los participantes deben tener un ID no nulo")
+                errors.add("No existe un participante con id ${participant?.id}")
             }
+        }
+        if (errors.isNotEmpty()) {
+            throw BadRequestException(errors.joinToString(". "))
         }
     }
 }

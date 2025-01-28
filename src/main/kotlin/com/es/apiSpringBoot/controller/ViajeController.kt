@@ -31,7 +31,7 @@ class ViajeController {
 
     @GetMapping("/{id}")
     @PreAuthorize("isAuthenticated() && (hasRole('ADMIN') || @viajeService.isUserParticipant(#id, authentication.principal.id))")
-    fun getViajeById(@PathVariable id: Long): ResponseEntity<Optional<Viaje>?> {
+    fun getViajeById(@PathVariable id: Long): ResponseEntity<Viaje> {
         val viaje = viajeService.findViajeById(id)
         return ResponseEntity.ok(viaje)
     }

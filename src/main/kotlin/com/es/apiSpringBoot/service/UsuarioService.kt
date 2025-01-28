@@ -1,5 +1,8 @@
 package com.es.apiSpringBoot.service
 
+import com.es.apiSpringBoot.exception.BadRequestException
+import com.es.apiSpringBoot.exception.ConflictException
+import com.es.apiSpringBoot.exception.NotFoundException
 import com.es.apiSpringBoot.model.Usuario
 import com.es.apiSpringBoot.model.enumclasses.UsuarioRol
 import com.es.apiSpringBoot.repository.UsuarioRepository
@@ -38,9 +41,10 @@ class UsuarioService : UserDetailsService {
 
         //Comprueba la validez de los datos
         validateUsuario(usuario)
-        usuarioRepository.findByUsername(usuario.username.toString())
         //Comprueba que el nombre sea unico
-        usernameUnique(usuario.username.toString())
+        if (usuarioRepository.findByUsername(usuario.username.toString()).isPresent) {
+            throw ConflictException("Usuario con nombre ${usuario.username} ya existe")
+        }
 
         //Es imposible registrar a un usuario con ADMIN desde la API se tiene que hacer manualmente
         usuario.rol = UsuarioRol.ROLE_USER
@@ -53,18 +57,23 @@ class UsuarioService : UserDetailsService {
         return usuarioRepository.findAll()
     }
 
-    fun findUserById(id: Long): Optional<Usuario?> {
+    fun findUserById(id: Long): Usuario {
         return usuarioRepository.findById(id)
+            .orElseThrow{
+                NotFoundException("No se encontró el destino con id $id")
+            }
     }
 
     fun updateUser(id: Long, nuevoUsuario: Usuario): Usuario {
         //Comprueba la validez de los datos
         validateUsuario(nuevoUsuario)
         //Comprueba que el nombre sea unico
-        usernameUnique(nuevoUsuario.username.toString())
+        if (usuarioRepository.findByUsername(nuevoUsuario.username.toString()).isPresent) {
+            throw ConflictException("Usuario con nombre ${nuevoUsuario.username} ya existe")
+        }
         //Comrpueba que el id de usuario exista y guarda sus datos
-        val oldUser = findUserById(id)
-            .orElseThrow { RuntimeException("El usuario que se intenta modifcar no existe") }
+        val oldUser = usuarioRepository.findById(id)
+            .orElseThrow{ NotFoundException("El usuario que se intenta actualizar no existe") }
 
         //Mantiene siempre el rol que tenía para evitar fallas de seuguridad
         nuevoUsuario.rol = oldUser?.rol
@@ -73,27 +82,20 @@ class UsuarioService : UserDetailsService {
 
     fun deleteUser(id: Long) {
         val usuario = usuarioRepository.findById(id)
-            .orElseThrow { RuntimeException("El usuario que se intenta borrar no existe") }
+            .orElseThrow{ NotFoundException("El usuario que se intenta borrar no existe") }
         usuarioRepository.delete(usuario)
-    }
-
-    //Comprueba que el nombre de usuario sea unico
-    private fun usernameUnique(username: String){
-        val userExists = usuarioRepository.findByUsername(username)
-        if (userExists.isPresent) {
-            throw { RuntimeException("Ese nombre de usuario ya esta en uso")} as Throwable
-        }
-
     }
 
     //Funcion auxiliar para comprobar si los datos del Usuario son correctos
     private fun validateUsuario(usuario: Usuario) {
+        val errors = mutableListOf<String>()
+
         // Comprueba que no haya datos vacios
         if (usuario.username.isNullOrBlank()) {
-            throw IllegalArgumentException("El nombre del destino no puede estar vacio")
+            errors.add("El nombre del usuario no puede estar vacío")
         }
         if (usuario.password.isNullOrBlank()) {
-            throw IllegalArgumentException("El nombre del país no puede estar vacio")
+            errors.add("La contrasena no puede estar vacia")
         }
 
 
@@ -106,12 +108,16 @@ class UsuarioService : UserDetailsService {
         }
 
         if (usuario.password!!.length > 50) {
-            throw IllegalArgumentException("La longitud maxima de la contrasena son 50 caracteres")
+            errors.add("La longitud máxima del nombre es 50 caracteres")
         }
 
-        // Check if country contains only valid characters (optional)
+        // Comprueba que la contraseña sigue estandares mínimos
         if (!usuario.password!!.matches(Regex("^(?=.*[A-Za-z])(?=.*\\\\d).{8,}\$"))) {
-            throw IllegalArgumentException("La contrasena debe ser 8 caracteres o mas y tener al menos una letra y un numero")
+            errors.add("La longitud máxima del nombre es 50 caracteres")
+        }
+
+        if (errors.isNotEmpty()) {
+            throw BadRequestException(errors.joinToString(". "))
         }
     }
 }
