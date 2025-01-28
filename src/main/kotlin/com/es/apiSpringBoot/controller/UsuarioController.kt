@@ -1,7 +1,8 @@
 package com.es.apiSpringBoot.controller
 
-import com.es.apiSpringBoot.model.Destino
+import com.es.apiSpringBoot.controller.trimmedClasses.UserRegisterLogin
 import com.es.apiSpringBoot.model.Usuario
+import com.es.apiSpringBoot.model.enumclasses.UsuarioRol
 import com.es.apiSpringBoot.service.TokenServiceAPI
 import com.es.apiSpringBoot.service.UsuarioService
 import org.springframework.beans.factory.annotation.Autowired
@@ -36,10 +37,13 @@ class UsuarioController {
     private lateinit var tokenServiceAPI: TokenServiceAPI
 
 
+
+
     @PostMapping("/register")
     fun register(
-        @RequestBody newUsuario: Usuario
+        @RequestBody newUsuario: UserRegisterLogin
     ): ResponseEntity<Usuario> {
+        val newUsuario = Usuario(null, newUsuario.username, newUsuario.password, null)
         val registeredUsuario = usuarioService.registerUsuario(newUsuario)
         return ResponseEntity(registeredUsuario, HttpStatus.CREATED)
     }
@@ -78,23 +82,18 @@ class UsuarioController {
     MÉTODO (ENDPOINT) PARA HACER UN LOGIN
      */
     @PostMapping("/login")
-    fun login(@RequestBody usuario: Usuario) : ResponseEntity<Any>? {
-
+    fun login(@RequestBody usuario: UserRegisterLogin): ResponseEntity<Any> {
         val authentication: Authentication
         try {
-            authentication = authenticationManager.authenticate(UsernamePasswordAuthenticationToken(usuario.username, usuario.password))
+            authentication = authenticationManager.authenticate(
+                UsernamePasswordAuthenticationToken(usuario.username, usuario.password)
+            )
         } catch (e: AuthenticationException) {
             return ResponseEntity(mapOf("mensaje" to "Credenciales incorrectas"), HttpStatus.UNAUTHORIZED)
         }
 
-
-        // SI PASAMOS LA AUTENTICACIÓN, SIGNIFICA QUE ESTAMOS BIEN AUTENTICADOS
-        // PASAMOS A GENERAR EL TOKEN
-        var token = ""
-        token = tokenServiceAPI.generarToken(authentication)
-
-
-        return ResponseEntity(mapOf("token" to token), HttpStatus.CREATED)
+        val token = tokenServiceAPI.generarToken(authentication)
+        return ResponseEntity(mapOf("mensaje" to "Login exitoso", "token" to token), HttpStatus.OK)
     }
 
 }

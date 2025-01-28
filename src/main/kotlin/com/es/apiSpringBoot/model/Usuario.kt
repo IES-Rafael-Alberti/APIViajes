@@ -13,7 +13,7 @@ data class Usuario(
     @Column(unique = true, nullable = false, length = 50)
     var username: String?,
 
-    @Column(nullable = false, length = 50)
+    @Column(nullable = false)
     var password: String?,
 
     @Enumerated(EnumType.STRING)

@@ -1,6 +1,8 @@
 package com.es.apiSpringBoot.controller
 
+import com.es.apiSpringBoot.controller.trimmedClasses.ViajesTrimmed
 import com.es.apiSpringBoot.model.Viaje
+import com.es.apiSpringBoot.model.enumclasses.MethodOfTravel
 import com.es.apiSpringBoot.service.ViajeService
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.HttpStatus
@@ -8,6 +10,7 @@ import org.springframework.http.ResponseEntity
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.web.bind.annotation.*
+import java.util.Date
 import java.util.Optional
 
 @RestController
@@ -17,9 +20,13 @@ class ViajeController {
     @Autowired
     private lateinit var viajeService: ViajeService
 
+
+
     @PostMapping
-    fun createViaje(@RequestBody viaje: Viaje): ResponseEntity<Viaje> {
-        val createdViaje = viajeService.createViaje(viaje)
+    fun createViaje(@RequestBody viaje: ViajesTrimmed): ResponseEntity<Viaje> {
+        //TODO HACER QUE PASE EL STRING POR SEPARADO
+        val fullViaje = Viaje(null, null, viaje.date, viaje.methodOfTravel, null)
+        val createdViaje = viajeService.createViaje(fullViaje)
         return ResponseEntity(createdViaje, HttpStatus.CREATED)
     }
 

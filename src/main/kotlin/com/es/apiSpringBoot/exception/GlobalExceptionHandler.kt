@@ -27,7 +27,7 @@ class GlobalExceptionHandler {
     }
 
     //En caso de que salte algo por fallo interno del programa
-    //(no va
+    //(no va a hacer falta porque soy un crack)
     @ExceptionHandler(Exception::class)
     fun handleGenericException(
         ex: Exception,
@@ -36,7 +36,7 @@ class GlobalExceptionHandler {
         val errorResponse = ErrorResponse(
             status = HttpStatus.INTERNAL_SERVER_ERROR.value(),
             error = HttpStatus.INTERNAL_SERVER_ERROR.reasonPhrase,
-            message = "Error interno del servidor",
+            message = "Error interno del servido",
             path = request.requestURI
         )
         return ResponseEntity(errorResponse, HttpStatus.INTERNAL_SERVER_ERROR)

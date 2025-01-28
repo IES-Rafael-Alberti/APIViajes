@@ -47,11 +47,11 @@ class SecurityConfig {
 
 
                 // Endpoints administrador
-                .requestMatchers(HttpMethod.GET,"/usuarios").hasRole("ROLE_ADMIN")
-                .requestMatchers(HttpMethod.GET,"/viajes").hasRole("ROLE_ADMIN")
-                .requestMatchers(HttpMethod.POST, "/destinos").hasRole("ROLE_ADMIN")
-                .requestMatchers(HttpMethod.PUT, "/destinos").hasRole("ROLE_ADMIN")
-                .requestMatchers(HttpMethod.DELETE, "/destinos/{id}").hasRole("ROLE_ADMIN")
+                .requestMatchers(HttpMethod.GET,"/usuarios").permitAll()
+                .requestMatchers(HttpMethod.GET,"/viajes").hasRole("ADMIN")
+                .requestMatchers(HttpMethod.POST, "/destinos").hasRole("ADMIN")
+                .requestMatchers(HttpMethod.PUT, "/destinos/{id}").hasRole("ADMIN")
+                .requestMatchers(HttpMethod.DELETE, "/destinos/{id}").hasRole("ADMIN")
 
 
                 // Endpoints de usuario, la logica de estos endpoints esta especificiada con PreAuthorize en los controllers

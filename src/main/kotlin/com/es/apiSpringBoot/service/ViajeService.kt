@@ -31,6 +31,9 @@ class ViajeService {
         //Comprueba que los datos del viaje sean validos
         validateViaje(viaje)
 
+        //Nullifica el id para evitar errores, el id se pone automatico de todas formas
+        viaje.id = null
+
         // Comprueba que el destino exista
         destinoRepository.findById(viaje.destination!!.id!!)
             .orElseThrow { NotFoundException("El destino no existe")

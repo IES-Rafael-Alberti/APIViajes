@@ -12,7 +12,6 @@ import org.springframework.security.core.userdetails.UserDetails
 import org.springframework.security.core.userdetails.UserDetailsService
 import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.stereotype.Service
-import java.util.Optional
 
 
 @Service
@@ -25,14 +24,16 @@ class UsuarioService : UserDetailsService {
     private lateinit var passwordEncoder: PasswordEncoder
 
     override fun loadUserByUsername(username: String?): UserDetails {
-        var usuario = usuarioRepository
+        val usuario = usuarioRepository
             .findByUsername(username!!)
-            .orElseThrow()
+            .orElseThrow { RuntimeException("Usuario no encontrado: $username") }
 
         return User.builder()
             .username(usuario.username)
             .password(usuario.password)
-            .roles(usuario.rol.toString())
+            // Spring Security expects roles to start with "ROLE_"
+            // Since you're already using ROLE_USER in your enum, you don't need to add "ROLE_" prefix
+            .roles(usuario.rol?.name?.removePrefix("ROLE_"))
             .build()
     }
 
@@ -41,6 +42,10 @@ class UsuarioService : UserDetailsService {
 
         //Comprueba la validez de los datos
         validateUsuario(usuario)
+
+        //Nullifica el id para evitar errores, el id se pone automatico de todas formas
+        usuario.id = null
+
         //Comprueba que el nombre sea unico
         if (usuarioRepository.findByUsername(usuario.username.toString()).isPresent) {
             throw ConflictException("Usuario con nombre ${usuario.username} ya existe")
@@ -67,6 +72,7 @@ class UsuarioService : UserDetailsService {
     fun updateUser(id: Long, nuevoUsuario: Usuario): Usuario {
         //Comprueba la validez de los datos
         validateUsuario(nuevoUsuario)
+
         //Comprueba que el nombre sea unico
         if (usuarioRepository.findByUsername(nuevoUsuario.username.toString()).isPresent) {
             throw ConflictException("Usuario con nombre ${nuevoUsuario.username} ya existe")
@@ -109,9 +115,9 @@ class UsuarioService : UserDetailsService {
             errors.add("La longitud máxima del nombre es 50 caracteres")
 
         //Comprueba que la contrasena sigue los estandares de minimos de seguirdad
-        }else if (!usuario.password!!.matches(Regex("^(?=.*[A-Za-z])(?=.*\\\\d).{8,}\$"))) {
+        }/*else if (!usuario.password!!.matches(Regex("^(?=.*[A-Za-z])(?=.*\\\\d).{8,}\$"))) {
                 errors.add("La contrasena debe tiene que al menos 8 caracteres y conetener una letra y un numero")
-        }
+        }*/
 
         if (errors.isNotEmpty()) {
             throw BadRequestException(errors.joinToString(". "))
