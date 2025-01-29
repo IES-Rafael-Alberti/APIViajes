@@ -1,7 +1,9 @@
 package com.es.apiSpringBoot.controller
 
+import com.es.apiSpringBoot.controller.DTOClasses.ViajeResponse
 import com.es.apiSpringBoot.controller.DTOClasses.ViajesInput
 import com.es.apiSpringBoot.controller.DTOClasses.toFull
+import com.es.apiSpringBoot.controller.DTOClasses.toResponse
 import com.es.apiSpringBoot.model.Viaje
 import com.es.apiSpringBoot.service.ViajeService
 import org.springframework.beans.factory.annotation.Autowired
@@ -10,6 +12,7 @@ import org.springframework.http.ResponseEntity
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.web.bind.annotation.*
+import kotlin.collections.map
 
 @RestController
 @RequestMapping("/viajes")
@@ -21,28 +24,30 @@ class ViajeController {
 
 
     @PostMapping
-    fun createViaje(@RequestBody viaje: ViajesInput): ResponseEntity<Viaje> {
+    fun createViaje(@RequestBody viaje: ViajesInput): ResponseEntity<ViajeResponse> {
         val fullViaje = viaje.toFull()
         val createdViaje = viajeService.createViaje(fullViaje, viaje.idDestination, viaje.participants)
+            .toResponse()
         return ResponseEntity(createdViaje, HttpStatus.CREATED)
     }
 
     @GetMapping
-    fun getAllViajes(): ResponseEntity<List<Viaje>> {
-        val viajes = viajeService.findAllViajes()
+    fun getAllViajes(): ResponseEntity<List<ViajeResponse>> {
+        val viajes = viajeService.findAllViajes().map { it.toResponse() }
         return ResponseEntity.ok(viajes)
     }
 
     @GetMapping("/{id}")
     @PreAuthorize("isAuthenticated() && (hasRole('ADMIN') || @viajeService.isUserParticipant(#id, authentication.principal.id))")
-    fun getViajeById(@PathVariable id: Long): ResponseEntity<Viaje> {
-        val viaje = viajeService.findViajeById(id)
+    fun getViajeById(@PathVariable id: Long): ResponseEntity<ViajeResponse> {
+        val viaje = viajeService.findViajeById(id).toResponse()
         return ResponseEntity.ok(viaje)
     }
 
     @GetMapping("/usuario/{usuarioId}")
-    fun getViajesByParticipant(@PathVariable usuarioId: Long): ResponseEntity<List<Viaje>> {
-        val viajes = viajeService.findViajesByParticipant(usuarioId)
+    @PreAuthorize("isAuthenticated() && (hasRole('ADMIN') || @viajeService.isUserParticipant(#usuarioId, authentication.principal.id))")
+    fun getViajesByParticipant(@PathVariable usuarioId: Long): ResponseEntity<List<ViajeResponse>> {
+        val viajes = viajeService.findViajesByParticipant(usuarioId).map { it.toResponse() }
         return ResponseEntity.ok(viajes)
     }
 
@@ -51,9 +56,9 @@ class ViajeController {
     fun updateViaje(
         @PathVariable id: Long,
         @RequestBody updatedViaje: ViajesInput
-    ): ResponseEntity<Viaje> {
+    ): ResponseEntity<ViajeResponse> {
         val fullViaje = updatedViaje.toFull()
-        val viaje = viajeService.updateViaje(id, fullViaje, updatedViaje.idDestination)
+        val viaje = viajeService.updateViaje(id, fullViaje, updatedViaje.idDestination).toResponse()
         return ResponseEntity.ok(viaje)
     }
 
@@ -66,15 +71,17 @@ class ViajeController {
 
     @PutMapping("/{id}/join")
     @PreAuthorize("isAuthenticated()")
-    fun joinViaje(@PathVariable id: Long): ResponseEntity<Viaje> {
+    fun joinViaje(@PathVariable id: Long): ResponseEntity<ViajeResponse> {
         val viaje = viajeService.addParticipant(id, SecurityContextHolder.getContext().authentication.name)
+            .toResponse()
         return ResponseEntity.ok(viaje)
     }
 
     @PutMapping("/{id}/leave")
     @PreAuthorize("isAuthenticated()")
-    fun leaveViaje(@PathVariable id: Long): ResponseEntity<Viaje> {
+    fun leaveViaje(@PathVariable id: Long): ResponseEntity<ViajeResponse> {
         val viaje = viajeService.removeParticipant(id, SecurityContextHolder.getContext().authentication.name)
+            .toResponse()
         return ResponseEntity.ok(viaje)
     }
 }

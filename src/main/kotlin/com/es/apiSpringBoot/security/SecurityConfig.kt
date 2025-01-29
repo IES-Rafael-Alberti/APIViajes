@@ -63,6 +63,7 @@ class SecurityConfig {
                 //Pueden acceder los administradores o los participantes del viaje
                 .requestMatchers(HttpMethod.GET,"/viajes/{id}").authenticated()
                 .requestMatchers(HttpMethod.PUT,"/viajes/{id}").authenticated()
+                .requestMatchers(HttpMethod.GET,"viajes/usuario/{usuarioId}").authenticated()
                 .requestMatchers(HttpMethod.DELETE, "/viajes/{id}").authenticated()
 
                 //Default, admin porque nada tendria que acabar aqui, pero si lo hace no quiero que acceda

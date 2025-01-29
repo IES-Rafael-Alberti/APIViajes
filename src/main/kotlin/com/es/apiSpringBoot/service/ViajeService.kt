@@ -67,7 +67,7 @@ class ViajeService {
         val existingViaje = viajeRepository.findById(id)
             .orElseThrow { NotFoundException("El viaje que se esta intentando actualizar no existe") }
 
-        destinoRepository.findById(idDestino!!)
+        updatedViaje.destination = destinoRepository.findById(idDestino!!)
             .orElseThrow { NotFoundException("El destino no existe")
         }
 
