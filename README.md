@@ -3,10 +3,12 @@
 ## API usando SpringBoot
 
 ### 1. Idea
+### Airplainee
+Voy a hace una API en springboot. El objetivo de esta API es conectarse a una aplicación de móvil la cual permita a los usuarios organizarse en grupo a a la hora de realizar viajes,
+pudiendo planear a donde quieren ir, en que fecha y de que forma se va a hacer el viaje, además de añadir quien va a participar.
 
-Voy a hacer una API REST de gestión de viajes en grupo (uno de los ejemplos). El objetivo es que la API permita a grupos de personas sincronizarse para hacer viajes.
-
-**Idea:** Aplicación de gestión de viajes en grupo
+He decido hacer esta API porque organizar un viaje puede ser un momento estresante y tener un lugar donde poner en común la planificación que sea accesible desde cualquier momento por
+los participantes puede ayudar a aligerar el proceso y evitar quebraderos de cabeza en un futuro.
 
 #### Tablas involucradas:
 - **Tabla 1:** Usuarios
@@ -14,21 +16,20 @@ Voy a hacer una API REST de gestión de viajes en grupo (uno de los ejemplos). E
 - **Tabla 3:** Destinos
 
 ---
-
 ### 2. Tablas
 
 #### Tabla Usuarios
 | Campo        | Tipo   | Restricciones                                  |
 |--------------|--------|------------------------------------------------|
-| **id**       | String | UNIQUE, PRIMARY KEY, 10 caracteres             |
-| **username** | String | 30 caracteres                                  |
+| **id**       | Double | UNIQUE, PRIMARY KEY                            |
+| **username** | String | 50 caracteres, UNIQUE                          |
 | **password** | String |                                                |
 | **roles**    | String | ENUM: ROL_USER, ROL_ADMIN                      |
-| **dni**      | String | NOT NULL, 9 caracteres                         |
 
 **Notas:**
 - El `id` autogenerado.
-- El `dni` tiene que seguir las restricciones que aseguran que sea correcto (que las letras sean las correctas segun los numeros).
+- La `password` tiene que tener al menos 8 caracteres, una letra y un número.
+- La longitud máxima de `password` antes de ser hasheada es de 50 caracteres.
 
 **Descripción:**
 - Usuarios de la aplicación
@@ -38,7 +39,7 @@ Voy a hacer una API REST de gestión de viajes en grupo (uno de los ejemplos). E
 #### Tabla Viajes
 | Campo              | Tipo         | Restricciones                                    |
 |--------------------|--------------|-------------------------------------------------|
-| **id**             | String       | UNIQUE, PRIMARY KEY, 10 caracteres             |
+| **id**             | Double       | UNIQUE, PRIMARY KEY                             |
 | **destination**    | Destino      | SECONDARY KEY                                   |
 | **date**           | Date         |                                                 |
 | **method_of_travel** | String     | ENUM: car, bus, train, plane, boat             |
@@ -47,23 +48,27 @@ Voy a hacer una API REST de gestión de viajes en grupo (uno de los ejemplos). E
 **Notas:**
 - El `id` autogenerado.
 - La llave secundaria destination apunta solo a un destino
+- La `date` debe ser el formato "yyyy-MM-dddd"
 - Varios usuarios pueden estar en el mismo viaje
+
+**Descripción:**
+- Viajes planificados por los usuarios de la aplicación.
 
 ---
 
 #### Tabla Destinos
 | Campo      | Tipo   | Restricciones                                   |
-|------------|--------|------------------------------------------------|
-| **id**     | String | UNIQUE, PRIMARY KEY, 10 caracteres            |
-| **name**   | String | NOT NULL, Máximo 20 caracteres                 |
-| **country**| String | NOT NULL, Máximo 20 caracteres                 |
+|------------|--------|-------------------------------------------------|
+| **id**     | String | UNIQUE, PRIMARY KEY, 10 caracteres              |
+| **name**   | String | NOT NULL, UNIQUE, Máximo 50 caracteres          |
+| **country**| String | NOT NULL                                        |
 
 **Notas:**
 - El `id` autogenerado.
 
 ### 3. Diagrama Clase-Entidad
 
-  ![Diagrama ClaseEntidad drawio](https://github.com/user-attachments/assets/1ab8161d-8bd8-4c0c-b30c-0b3065812e36)
+![DiagramaRecuperacion](https://github.com/user-attachments/assets/d420cac4-21c1-463a-8f98-2fd8fe607d8f)
 
 ### 4. Endpoints
 
