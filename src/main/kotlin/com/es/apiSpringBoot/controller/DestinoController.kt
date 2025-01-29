@@ -1,6 +1,7 @@
 package com.es.apiSpringBoot.controller
 
-import com.es.apiSpringBoot.controller.trimmedClasses.DestinoTrimmed
+import com.es.apiSpringBoot.controller.DTOClasses.DestinoInput
+import com.es.apiSpringBoot.controller.DTOClasses.toFull
 import com.es.apiSpringBoot.model.Destino
 import com.es.apiSpringBoot.service.DestinoService
 import org.springframework.beans.factory.annotation.Autowired
@@ -16,9 +17,9 @@ class DestinoController {
     private lateinit var destinoService: DestinoService
 
     @PostMapping
-    fun createDestino(@RequestBody destino: DestinoTrimmed): ResponseEntity<Destino> {
-        val fullDestino = Destino(null, destino.name, destino.country)
-        val createdDestino = destinoService.createDestino(fullDestino)
+    fun createDestino(@RequestBody destino: DestinoInput): ResponseEntity<Destino> {
+        val destinoFull = destino.toFull()
+        val createdDestino = destinoService.createDestino(destinoFull)
         return ResponseEntity(createdDestino, HttpStatus.CREATED)
     }
 
@@ -37,9 +38,10 @@ class DestinoController {
     @PutMapping("/{id}")
     fun updateDestino(
         @PathVariable id: Long,
-        @RequestBody updatedDestino: Destino
+        @RequestBody updatedDestino: DestinoInput
     ): ResponseEntity<Destino> {
-        val destino = destinoService.updateDestino(id, updatedDestino)
+        val fullDestino = updatedDestino.toFull()
+        val destino = destinoService.updateDestino(id, fullDestino)
         return ResponseEntity.ok(destino)
     }
 

@@ -27,27 +27,26 @@ class ViajeService {
     @Autowired
     private lateinit var usuarioRepository: UsuarioRepository
 
-    fun createViaje(viaje: Viaje): Viaje {
+    fun createViaje(viaje: Viaje, idDestino: Long?, idParticipants: Array<Long?>?): Viaje {
         //Comprueba que los datos del viaje sean validos
-        validateViaje(viaje)
+        validateViaje(viaje, idDestino)
 
-        //Nullifica el id para evitar errores, el id se pone automatico de todas formas
-        viaje.id = null
-
-        // Comprueba que el destino exista
-        destinoRepository.findById(viaje.destination!!.id!!)
+        // Comprueba que el destino exista, si existe lo anade al viaje
+        viaje.destination = destinoRepository.findById(idDestino!!)
             .orElseThrow { NotFoundException("El destino no existe")
         }
 
-        // Comprueba que los participantes existan
-        val validParticipants = viaje.participants?.map { participant ->
-            usuarioRepository.findById(participant?.id!!)
-                .orElseThrow { NotFoundException("Usuario con ID ${participant.id} no existe") }
+        // Si hay IDs de participantes, buscarlos y añadirlos
+        val validParticipants = idParticipants?.mapNotNull { participantId ->
+            participantId?.let { id ->
+                usuarioRepository.findById(id)
+                    .orElseThrow { NotFoundException("Usuario con ID $id no existe") }
+            }
         }?.toSet()
 
-            viaje.participants = validParticipants
-            return viajeRepository.save(viaje)
+        viaje.participants = validParticipants
 
+        return viajeRepository.save(viaje)
     }
 
     fun findAllViajes(): List<Viaje>{
@@ -62,18 +61,21 @@ class ViajeService {
     }
 
 
-    fun updateViaje(id: Long, updatedViaje: Viaje): Viaje {
-        validateViaje(updatedViaje)
+    fun updateViaje(id: Long, updatedViaje: Viaje, idDestino: Long?): Viaje {
+        validateViaje(updatedViaje, idDestino)
 
         val existingViaje = viajeRepository.findById(id)
             .orElseThrow { NotFoundException("El viaje que se esta intentando actualizar no existe") }
 
-        destinoRepository.findById(updatedViaje.destination?.id!!)
+        destinoRepository.findById(idDestino!!)
             .orElseThrow { NotFoundException("El destino no existe")
         }
 
         //Los participantes se tienen que cambiar por separado para evitar fallas de seguridad
         updatedViaje.participants = existingViaje.participants
+
+        //Ponemos el mismo id que tenia antes
+        updatedViaje.id = existingViaje.id
 
         return viajeRepository.save(updatedViaje)
     }
@@ -136,15 +138,12 @@ class ViajeService {
         return viaje.participants!!.any { it?.id == usuarioId }
     }
 
-    private fun validateViaje(viaje: Viaje) {
+    private fun validateViaje(viaje: Viaje, idDestino: Long?) {
         val errors = mutableListOf<String>()
 
         // Comprueba que no haya datos nulos
-        if (viaje.destination == null) {
-            errors.add("El destino no puede estar vacío")
-        }
-        if (viaje.destination!!.id == null) {
-            errors.add("El ID del destino no puede estar vacío")
+        if(idDestino == null) {
+            errors.add("El id de destino no puede estar vacio")
         }
         if (viaje.date == null) {
             errors.add("La fecha no puede estar vacía")

@@ -43,9 +43,6 @@ class UsuarioService : UserDetailsService {
         //Comprueba la validez de los datos
         validateUsuario(usuario)
 
-        //Nullifica el id para evitar errores, el id se pone automatico de todas formas
-        usuario.id = null
-
         //Comprueba que el nombre sea unico
         if (usuarioRepository.findByUsername(usuario.username.toString()).isPresent) {
             throw ConflictException("Usuario con nombre ${usuario.username} ya existe")
@@ -81,8 +78,13 @@ class UsuarioService : UserDetailsService {
         val oldUser = usuarioRepository.findById(id)
             .orElseThrow{ NotFoundException("El usuario que se intenta actualizar no existe") }
 
+        //El id del usario es el mismo que el antiguo
+        nuevoUsuario.id = oldUser.id
         //Mantiene siempre el rol que tenía para evitar fallas de seuguridad
         nuevoUsuario.rol = oldUser?.rol
+        //Codificamos la contrasena
+        nuevoUsuario.password = passwordEncoder.encode(nuevoUsuario.password)
+
         return usuarioRepository.save(nuevoUsuario)
     }
 

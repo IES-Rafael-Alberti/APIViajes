@@ -47,7 +47,7 @@ class SecurityConfig {
 
 
                 // Endpoints administrador
-                .requestMatchers(HttpMethod.GET,"/usuarios").permitAll()
+                .requestMatchers(HttpMethod.GET,"/usuarios").hasRole("ADMIN")
                 .requestMatchers(HttpMethod.GET,"/viajes").hasRole("ADMIN")
                 .requestMatchers(HttpMethod.POST, "/destinos").hasRole("ADMIN")
                 .requestMatchers(HttpMethod.PUT, "/destinos/{id}").hasRole("ADMIN")

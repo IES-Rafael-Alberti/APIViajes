@@ -18,9 +18,6 @@ class DestinoService {
         //Comprueba la validez de los datos
         validateDestino(destino)
 
-        //Nullifica el id para evitar errores, el id se pone automatico de todas formas
-        destino.id = null
-
         // Comprueba que no exista un destino con el mismo nombre
         if (destinoRepository.findByName(destino.name.toString()).isPresent) {
             throw ConflictException("Destination con nombre ${destino.name} ya existe")
@@ -49,6 +46,9 @@ class DestinoService {
         //Comprueba que el destino que se esta intentado cambiar exsite
         val oldDestino = destinoRepository.findById(id)
             .orElseThrow{ NotFoundException("El destino que se intenta actualizar no existe") }
+
+        //Mantenemos el id para que actualice
+        newDestino.id = oldDestino.id
 
         return destinoRepository.save(newDestino)
     }

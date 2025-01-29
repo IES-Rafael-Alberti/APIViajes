@@ -1,8 +1,8 @@
 package com.es.apiSpringBoot.controller
 
-import com.es.apiSpringBoot.controller.trimmedClasses.ViajesTrimmed
+import com.es.apiSpringBoot.controller.DTOClasses.ViajesInput
+import com.es.apiSpringBoot.controller.DTOClasses.toFull
 import com.es.apiSpringBoot.model.Viaje
-import com.es.apiSpringBoot.model.enumclasses.MethodOfTravel
 import com.es.apiSpringBoot.service.ViajeService
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.HttpStatus
@@ -10,8 +10,6 @@ import org.springframework.http.ResponseEntity
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.web.bind.annotation.*
-import java.util.Date
-import java.util.Optional
 
 @RestController
 @RequestMapping("/viajes")
@@ -23,10 +21,9 @@ class ViajeController {
 
 
     @PostMapping
-    fun createViaje(@RequestBody viaje: ViajesTrimmed): ResponseEntity<Viaje> {
-        //TODO HACER QUE PASE EL STRING POR SEPARADO
-        val fullViaje = Viaje(null, null, viaje.date, viaje.methodOfTravel, null)
-        val createdViaje = viajeService.createViaje(fullViaje)
+    fun createViaje(@RequestBody viaje: ViajesInput): ResponseEntity<Viaje> {
+        val fullViaje = viaje.toFull()
+        val createdViaje = viajeService.createViaje(fullViaje, viaje.idDestination, viaje.participants)
         return ResponseEntity(createdViaje, HttpStatus.CREATED)
     }
 
@@ -53,9 +50,10 @@ class ViajeController {
     @PreAuthorize("isAuthenticated() && (hasRole('ADMIN') || @viajeService.isUserParticipant(#id, authentication.principal.id))")
     fun updateViaje(
         @PathVariable id: Long,
-        @RequestBody updatedViaje: Viaje
+        @RequestBody updatedViaje: ViajesInput
     ): ResponseEntity<Viaje> {
-        val viaje = viajeService.updateViaje(id, updatedViaje)
+        val fullViaje = updatedViaje.toFull()
+        val viaje = viajeService.updateViaje(id, fullViaje, updatedViaje.idDestination)
         return ResponseEntity.ok(viaje)
     }
 
