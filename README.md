@@ -164,30 +164,119 @@ El objetivo de la aplicación es permitir a las personas organizar viajes en gru
 
 - Todo el mundo puede, incluso sin autenticar, ver todos los destinos registrados. Por el contrario los úncios que pueden ver todos los viajes o usuarios son los administradores.
 
-**5. Excepciones y códigos de estado**
+### 6. Excepciones y códigos de estado
 
 En la aplicación uso aplicaciones personalizadas para asegurarme que la respuesta HTTP correcta siempre se suceda un error dentro de la API. En mi case devuelvo la siguiente información sobre la excepción:
 
-Status: Código del error.
-Error: Nombre del error.
-Mensaje: Describiendo el problema, se escribe cuando se programa el salto de excepción.
-Path: En que url de la API ha sucedido el error.
+-Status: Código del error.
+-Error: Nombre del error.
+-Mensaje: Describiendo el problema, se escribe cuando se programa el salto de excepción.
+-Path: En que url de la API ha sucedido el error.
 
-BadRequestException (Código 400 BAD_REQUEST)
+-BadRequestException (Código 400 BAD_REQUEST)
 Salta cuando los datos que ha introducido el usuario son incorrectos o nos siguen el formato correcto. Por ejemplo: Cuando el usuario ha dejado vacío un campo que es
 obligatorio rellenar, una fecha no está escrita en el formato incorrecto o la contraseña no sigue las reglas necesarias.
 
-NotFoundException (Código 404 NOT FOUND)
+-NotFoundException (Código 404 NOT FOUND)
 Salta cuando un recurso solicitado no existe o no puede ser encontrado. Suele ocurrir cuando se intenta leer, modificar o borrar un elemento con un id que no existe.
 
-ConflictException (Código 409 CONFLICT)
+-ConflictException (Código 409 CONFLICT)
 Salta cuando algo que se está intentado hacer o un dato que se intenta introducir entra en conflicto con algo que ya existe en la base de datos. Por ejemplo: Intentar registrarse con un username que ya está en uso o intentar crear un destino con el mismo nombre de uno que ya está registrado. Lo mismo podría ocurrir al intentar actualizarlos.
 
-excepción generica (Código 500 INTERNAL SERVER ERROR)
+-excepción generica (Código 500 INTERNAL SERVER ERROR)
 Si sucede una excepción inesperada, hay un tipo de excepción generica que controla la respuesta del servidor. En este caso una de las cosas que hace es que el mensaje
 se vuelve génerico para que no devuelva todo el error, evitando que se filtren los fallos del código del servidor.
 
-**6. Restricciones de seguridad**
+### 7. Restricciones de seguridad
+
+Endpoitns Públicos: Incluye aquellos para registrarse e iniciar sesión o ver los destinos disponibles
+- POST /usuarios/login:
+- POST /usuarios/register:
+- GET /destinos:
+- GET /destinos/id:
+
+Endpoints para usuarios autorizados: Registrarse permite a los usuarios crear, unirse o dejar viajes
+- POST /viajes
+- PUT /viajes/id/join
+- PUT /viajes/id/leave
+
+Endpoints para adminsitradores: Los administradores tiene acceso a toda la información además de ser los unicos que pueden modificar los destinos disponibles
+- GET /usuarios
+- GET /viajes
+- POST /destinos
+- PUT /destinos/id
+- DELETE /destinos/id
+
+Endpoitns de usuario (pueden acceder los propios usuarios a ellos mismos o los administradores): Incluye las acciones sobre la cuenta de uno mismo
+- GET /usuarios/id
+- PUT /usuarios/id
+- DELETE /usuarios/id
+
+Enpoitns de participante (pueden acceder los participantes del viaje o los administradores): Incluye las acciones sobre las acciones sobre un viaje al que uno pertence.
+- GET /viajes/id
+- PUT /viajes/id
+- GET /viajes/usuarios/usuarioId
+- DELETE /viajes/id
+
+Notas: Si algún endpoint no está incluido, por defecto se considera de accesso exclusivo para los administradores para evitar que se filtre cualquier tipo de información o función por error.
+
+### 8. Teoría
+
+## a. ¿Qué dependencias has utilzado?
+He usado la página https://start.spring.io/ para crear y descargar el paquete de SpringBoot al cual le he añadido las siguientes dependencias:
+-Spring Web
+-Spring Data JPA
+-OAuth2 Resource Server
+-Spring Boot DevTools
+
+Mi IDE durante el proyecto ha sido IntelliJ, XAMPP para lanzar un servidor Apache donde se encuentra la base de datos MySQL donde he usado phpMyAdmin como editor de base de datos. Para la pruebas de endpoints he usado Insomnia que me permite realizar pruebas rápidamente y de forma sencilla. Finalmente mi navegador predilecto ha sido Firefox.
+
+## b. ¿Qué es una API REST? ¿Cuáles son los principios de una API REST? ¿Dónde identificas dichos principios dentro de tu implementación? 
+
+Una API REST (Representational State Transfer) es un estilo de arquitectura de software para sistemas distribuidos, se usa sobre todo en aplicaciones web
+Los principios fundamentales de una API REST son:
+
+- Cliente-servidor: La unica forma de comunicar se entre el cliente y el servidor debe ser mediante solicitudes HTTP, deben estar asilados de cualquier otra forma.
+- Sin estado (stateless): No se debe compartir información entre peticiones, es decir, sin estado. Todas las peticiones deben ser independientes y usar solo la información necesaria.
+- Identificador único (URI): Todos los recursos deben mantener una jerarquía lógica y tener una URI única que no se repita.
+- Uso correcto de HTTP: REST debe respetar tanto los verbos y códigos de estado para cada operación: GET, POST, PUT, DELETE, PATCH, etc...
+
+En mi implementación los principios se representan de la siguiente forma:
+
+- Cliente-servidor: La única forma de interactuar con el servidor es mediante los endpoints no hay otra forma de hacerlo.
+- Sin estado: No se guarda nada en el servidor cuando se realiza una petición y se pide la información minima necesaria usando DTA que permitan recibir exactamente lo necesario.
+- Identificador único: Los URIs se organizan por el tipo de dato al que afectan (usuario/viaje/destino) y ninguno se repite.
+- Uso correcto de HTTP: Los endpoints GET son para pedir información, POST solo para crear nueva información (como register o login), PUT es para actualizar información ya existente en la base de datos y DELETE para elminarla. Además me aseguro que la repuesta HTTP siempre sea la correcta según la operación realizada incluse cuando ocurre un error, teniendo excepciones personalizadas que devuelven exactamente lo que ha pasado.
+
+## c. ¿Qué ventajas tiene realizar una separación de responsabilidades entre cliente y servidor?
+
+**Independencia y flexibilidad en el desarrollo:**
+
+El equipo de frontend puede trabajar independientemente del equipo de backend. Se pueden realizar cambios en el cliente sin afectar al servidor y viceversa
+Permite usar diferentes tecnologías en cada lado (por ejemplo, JetPack Compose en frontend y Springboot en backend)
+
+**Escalabilidad mejorada:**
+
+El servidor puede escalarse independientemente según la carga y se pueden agregar más servidores sin afectar a los clientes.
+También permite optimizar recursos de manera específica para cada parte
+
+**Mayor seguridad:**
+
+El cliente no tiene acceso directo a la base de datos .Se puede implementar autenticación y autorización de manera centralizada. Los datos sensibles se pueden procesar y validar en el servidor
+
+**Reutilización del backend:**
+
+Un mismo servidor puede servir a múltiples clientes (web, móvil, desktop) y las APIs pueden ser consumidas por diferentes aplicaciones facilitando la integración con sistemas de terceros.
+
+**Mantenimiento más sencillo:**
+
+Los problemas se pueden aislar más fácilmente y las actualizaciones se pueden realizar por separado
+La documentación puede mantenerse específica para cada parte.
+
+**Mejor gestión de recursos:**
+
+El procesamiento pesado se puede realizar en el servidor, por lo tanto se reduce la carga en los dispositivos cliente.
+
 
 
 
