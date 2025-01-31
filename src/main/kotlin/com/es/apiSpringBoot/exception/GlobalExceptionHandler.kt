@@ -26,6 +26,20 @@ class GlobalExceptionHandler {
         return ResponseEntity(errorResponse, ex.status)
     }
 
+    @ExceptionHandler(org.springframework.security.access.AccessDeniedException::class)
+    fun handleAccessDeniedException(
+        e: AccessDeniedException,
+        request: HttpServletRequest
+    ): ResponseEntity<ErrorResponse> {
+        val errorResponse = ErrorResponse(
+            status = HttpStatus.FORBIDDEN.value(),
+            error = e.message ?: "Access denied",
+            message = "",
+            path = request.requestURI,
+            )
+        return ResponseEntity(errorResponse, HttpStatus.FORBIDDEN)
+    }
+
     //En caso de que salte algo por fallo interno del programa
     //(no va a hacer falta porque soy un crack)
     @ExceptionHandler(Exception::class)

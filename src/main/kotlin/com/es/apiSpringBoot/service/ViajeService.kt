@@ -131,13 +131,15 @@ class ViajeService {
     }
 
 
-    //Funcion que se utiliza para saber si un usuario pertence a
-    fun isUserParticipant(viajeId: Long, usuarioId: Long): Boolean {
+    //Funcion que se utiliza para saber si un usuario pertence a un viaje en particular
+    fun isUserParticipant(viajeId: Long, username: String): Boolean {
         val viaje = viajeRepository.findById(viajeId)
-            .orElseThrow { NotFoundException("El viaje no existe") }
-        return viaje.participants!!.any { it?.id == usuarioId }
+            .orElseThrow { NotFoundException("Este viaje no existe") }
+        return viaje.participants!!.any { it?.username == username }
     }
 
+
+    //Comprobación basica de los datos del viaje, formato, longitud, no nulo...
     private fun validateViaje(viaje: Viaje, idDestino: Long?) {
         val errors = mutableListOf<String>()
 

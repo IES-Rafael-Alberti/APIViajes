@@ -40,6 +40,7 @@ class UsuarioController {
 
 
 
+    //Metodo que registra un usuario a la base de datos
     @PostMapping("/register")
     fun register(
         @RequestBody newUsuario: UsuarioInput
@@ -49,21 +50,23 @@ class UsuarioController {
         return ResponseEntity(registeredUsuario, HttpStatus.CREATED)
     }
 
+    //Metodo que devuelve todos los usuarios de la base de datos
     @GetMapping
     fun getAllUsers(): ResponseEntity<List<UsuarioResponse>> {
         val usuarios = usuarioService.findAllUsers().map { it.toResponse() }
         return ResponseEntity.ok(usuarios)
     }
 
+    //Metodo que devuelve solo el usuario segun un id especifico
     @GetMapping("/{id}")
-    @PreAuthorize("isAuthenticated() && (#id == authentication.principal.id || hasRole('ADMIN'))")
+    @PreAuthorize("isAuthenticated() && (authentication.name == @usuarioService.findUserById(#id).username || hasRole('ADMIN'))")
     fun getUserById(@PathVariable id: Long): ResponseEntity<UsuarioResponse> {
         val usuario = usuarioService.findUserById(id).toResponse()
         return ResponseEntity.ok(usuario)
     }
 
     @PutMapping("/{id}")
-    @PreAuthorize("isAuthenticated() && (#id == authentication.principal.id || hasRole('ADMIN'))")
+    @PreAuthorize("isAuthenticated() && (authentication.name == @usuarioService.findUserById(#id).username || hasRole('ADMIN'))")
     fun updateUser(
         @PathVariable id: Long,
         @RequestBody updatedUser: UsuarioInput
@@ -74,15 +77,12 @@ class UsuarioController {
     }
 
     @DeleteMapping("/{id}")
-    @PreAuthorize("isAuthenticated() && (#id == authentication.principal.id || hasRole('ADMIN'))")
+    @PreAuthorize("isAuthenticated() && (authentication.name == @usuarioService.findUserById(#id).username || hasRole('ADMIN'))")
     fun deleteUser(@PathVariable id: Long): ResponseEntity<Void> {
         usuarioService.deleteUser(id)
         return ResponseEntity.noContent().build()
     }
 
-    /*
-    MÉTODO (ENDPOINT) PARA HACER UN LOGIN
-     */
     @PostMapping("/login")
     fun login(@RequestBody usuario: UsuarioInput): ResponseEntity<Any> {
         val authentication: Authentication

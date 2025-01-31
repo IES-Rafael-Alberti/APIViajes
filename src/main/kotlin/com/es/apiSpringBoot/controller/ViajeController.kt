@@ -38,21 +38,21 @@ class ViajeController {
     }
 
     @GetMapping("/{id}")
-    @PreAuthorize("isAuthenticated() && (hasRole('ADMIN') || @viajeService.isUserParticipant(#id, authentication.principal.id))")
+    @PreAuthorize("hasRole('ADMIN') || @viajeService.isUserParticipant(#id, authentication.name)")
     fun getViajeById(@PathVariable id: Long): ResponseEntity<ViajeResponse> {
         val viaje = viajeService.findViajeById(id).toResponse()
         return ResponseEntity.ok(viaje)
     }
 
     @GetMapping("/usuario/{usuarioId}")
-    @PreAuthorize("isAuthenticated() && (hasRole('ADMIN') || @viajeService.isUserParticipant(#usuarioId, authentication.principal.id))")
+    @PreAuthorize("hasRole('ROLE_ADMIN') || @viajeService.isUserParticipant(#usuarioId, authentication.name)")
     fun getViajesByParticipant(@PathVariable usuarioId: Long): ResponseEntity<List<ViajeResponse>> {
         val viajes = viajeService.findViajesByParticipant(usuarioId).map { it.toResponse() }
         return ResponseEntity.ok(viajes)
     }
 
     @PutMapping("/{id}")
-    @PreAuthorize("isAuthenticated() && (hasRole('ADMIN') || @viajeService.isUserParticipant(#id, authentication.principal.id))")
+    @PreAuthorize("hasRole('ROLE_ADMIN') || @viajeService.isUserParticipant(#id, authentication.name)")
     fun updateViaje(
         @PathVariable id: Long,
         @RequestBody updatedViaje: ViajesInput
@@ -63,14 +63,13 @@ class ViajeController {
     }
 
     @DeleteMapping("/{id}")
-    @PreAuthorize("isAuthenticated() && (hasRole('ADMIN') || @viajeService.isUserParticipant(#id, authentication.principal.id))")
+    @PreAuthorize("hasRole('ROLE_ADMIN') || @viajeService.isUserParticipant(#id, authentication.name)")
     fun deleteViaje(@PathVariable id: Long): ResponseEntity<Void> {
         viajeService.deleteViaje(id)
         return ResponseEntity.noContent().build()
     }
 
     @PutMapping("/{id}/join")
-    @PreAuthorize("isAuthenticated()")
     fun joinViaje(@PathVariable id: Long): ResponseEntity<ViajeResponse> {
         val viaje = viajeService.addParticipant(id, SecurityContextHolder.getContext().authentication.name)
             .toResponse()
@@ -78,7 +77,6 @@ class ViajeController {
     }
 
     @PutMapping("/{id}/leave")
-    @PreAuthorize("isAuthenticated()")
     fun leaveViaje(@PathVariable id: Long): ResponseEntity<ViajeResponse> {
         val viaje = viajeService.removeParticipant(id, SecurityContextHolder.getContext().authentication.name)
             .toResponse()

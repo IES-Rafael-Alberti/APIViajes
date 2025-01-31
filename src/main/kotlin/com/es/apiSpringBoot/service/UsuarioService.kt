@@ -80,7 +80,7 @@ class UsuarioService : UserDetailsService {
 
         //El id del usario es el mismo que el antiguo
         nuevoUsuario.id = oldUser.id
-        //Mantiene siempre el rol que tenía para evitar fallas de seuguridad
+        //Mantiene siempre el rol que tenía para evitar fallas de seguridad
         nuevoUsuario.rol = oldUser?.rol
         //Codificamos la contrasena
         nuevoUsuario.password = passwordEncoder.encode(nuevoUsuario.password)
@@ -114,12 +114,12 @@ class UsuarioService : UserDetailsService {
             errors.add("La contrasena no puede estar vacia")
 
         }else if (usuario.password!!.length > 50) {
-            errors.add("La longitud máxima del nombre es 50 caracteres")
+            errors.add("La longitud máxima de la contrasena es 50 caracteres")
 
         //Comprueba que la contrasena sigue los estandares de minimos de seguirdad
-        }/*else if (!usuario.password!!.matches(Regex("^(?=.*[A-Za-z])(?=.*\\\\d).{8,}\$"))) {
-                errors.add("La contrasena debe tiene que al menos 8 caracteres y conetener una letra y un numero")
-        }*/
+        }else if (!usuario.password!!.matches(Regex("^(?=.*[A-Za-z])(?=.*\\d)[A-Za-z\\d\\W]{8,}\$"))) {
+            errors.add("La contraseña debe tener al menos 8 caracteres y contener una letra y un número")
+        }
 
         if (errors.isNotEmpty()) {
             throw BadRequestException(errors.joinToString(". "))

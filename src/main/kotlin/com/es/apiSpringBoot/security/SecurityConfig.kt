@@ -13,6 +13,7 @@ import org.springframework.http.HttpMethod
 import org.springframework.security.authentication.AuthenticationManager
 import org.springframework.security.config.Customizer
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity
 import org.springframework.security.config.annotation.web.builders.HttpSecurity
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity
 import org.springframework.security.config.http.SessionCreationPolicy
@@ -26,6 +27,7 @@ import org.springframework.security.web.SecurityFilterChain
 
 @Configuration
 @EnableWebSecurity
+@EnableMethodSecurity(prePostEnabled = true)
 class SecurityConfig {
 
     @Autowired
@@ -53,7 +55,6 @@ class SecurityConfig {
                 .requestMatchers(HttpMethod.PUT, "/destinos/{id}").hasRole("ADMIN")
                 .requestMatchers(HttpMethod.DELETE, "/destinos/{id}").hasRole("ADMIN")
 
-
                 // Endpoints de usuario, la logica de estos endpoints esta especificiada con PreAuthorize en los controllers
                 //Pueden acceder administradores o los usuarios en si
                 .requestMatchers(HttpMethod.GET,"/usuarios/{id}").authenticated()
@@ -69,6 +70,7 @@ class SecurityConfig {
                 //Default, admin porque nada tendria que acabar aqui, pero si lo hace no quiero que acceda
                 //nadie excepto los desarrolladores para solucionarlo
                 .anyRequest().hasRole("ADMIN")
+
             }
             .oauth2ResourceServer { oauth2 -> oauth2.jwt(Customizer.withDefaults()) }
             .sessionManagement { session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS) }
